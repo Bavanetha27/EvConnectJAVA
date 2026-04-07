@@ -2,6 +2,8 @@
 
 EvConnect is a full-stack **Event Management SaaS Platform** that allows users to register for events, organizers to create and manage events, and participants to form teams. The system supports **role-based access control** and **secure authentication using JWT**.
 
+<img width="1919" height="871" alt="image" src="https://github.com/user-attachments/assets/94401945-65a4-4465-80e9-5d1cbc37a1e2" />
+
 ---
 
 # Features
