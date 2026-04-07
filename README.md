@@ -72,6 +72,7 @@ evconnect-frontend/
 
 ---
 
+````
 # Architecture
 
 Client
@@ -83,6 +84,7 @@ Service Layer
 Repository Layer
 ↓
 MongoDB Database
+````
 
 ---
 
@@ -113,6 +115,7 @@ MongoDB Database
 
 ### Backend Setup
 
+````
 Clone repository
 git clone https://github.com/yourusername/evconnect.git
 
@@ -129,11 +132,13 @@ mvn spring-boot:run
 
 Backend runs on:
 http://localhost:8080
+````
 
 ---
 
 ### Frontend Setup
 
+````
 Navigate to frontend
 
 cd evconnect-frontend
@@ -148,6 +153,7 @@ npm run dev
 
 Frontend runs on:
 http://localhost:5173
+````
 
 ---
 
