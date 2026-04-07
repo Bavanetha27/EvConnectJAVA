@@ -6,15 +6,15 @@ EvConnect is a full-stack **Event Management SaaS Platform** that allows users t
 
 # Features
 
-• User Registration & Login (JWT Authentication)
-• Role-Based Access Control (User, Organizer, Admin)
-• Create, Update, Delete Events
-• Event Registration System
-• Team Creation & Join Functionality
-• Secure REST APIs
-• MongoDB Database Integration
-• Responsive React Frontend
-• Protected Routes using Authentication
+- User Registration & Login (JWT Authentication)
+- Role-Based Access Control (User, Organizer, Admin)
+- Create, Update, Delete Events
+- Event Registration System
+- Team Creation & Join Functionality
+- Secure REST APIs
+- MongoDB Database Integration
+- Responsive React Frontend
+- Protected Routes using Authentication
 
 ---
 
@@ -22,25 +22,25 @@ EvConnect is a full-stack **Event Management SaaS Platform** that allows users t
 
 ### Backend
 
-• Java 17
-• Spring Boot 3
-• Spring Security
-• JWT Authentication
-• MongoDB
-• Lombok
+- Java 17
+- Spring Boot 3
+- Spring Security
+- JWT Authentication
+- MongoDB
+- Lombok
 
 ### Frontend
 
-• React (Vite)
-• JSX
-• Axios
-• Context API
-• CSS
+- React (Vite)
+- JSX
+- Axios
+- Context API
+- CSS
 
 ### Testing
 
-• JUnit (Backend Testing)
-• Selenium (Frontend UI Testing)
+- JUnit (Backend Testing)
+- Selenium (Frontend UI Testing)
 
 ---
 
@@ -92,22 +92,22 @@ MongoDB Database
 
 ### USER
 
-• View events
-• Register for events
-• Create or join teams
+- View events
+- Register for events
+- Create or join teams
 
 ### ORGANIZER
 
-• Create events
-• Update own events
-• Delete own events
-• Manage participants
+- Create events
+- Update own events
+- Delete own events
+- Manage participants
 
 ### ADMIN
 
-• Manage all events
-• Manage users
-• Full system access
+- Manage all events
+- Manage users
+- Full system access
 
 ---
 
@@ -194,32 +194,32 @@ GET /api/registrations
 
 # Security
 
-• JWT Authentication
-• Spring Security Filter Chain
-• Role Based Authorization
-• Protected APIs
-• Password Encryption (BCrypt)
+- JWT Authentication
+- Spring Security Filter Chain
+- Role Based Authorization
+- Protected APIs
+- Password Encryption (BCrypt)
 
 ---
 
 # OOAD Principles Used
 
-• Encapsulation
-• Abstraction
-• Inheritance
-• Polymorphism
-• Single Responsibility Principle
-• Open Closed Principle
-• Dependency Inversion Principle
-• Separation of Concerns
+- Encapsulation
+- Abstraction
+- Inheritance
+- Polymorphism
+- Single Responsibility Principle
+- Open Closed Principle
+- Dependency Inversion Principle
+- Separation of Concerns
 
 ### Design Patterns
 
-• Builder Pattern
-• Factory Method Pattern
-• Template Method Pattern
-• Chain of Responsibility
-• Observer Pattern
+- Builder Pattern
+- Factory Method Pattern
+- Template Method Pattern
+- Chain of Responsibility
+- Observer Pattern
 
 ---
 
@@ -227,30 +227,30 @@ GET /api/registrations
 
 ### JUnit
 
-• Service layer testing
-• Controller testing
-• Authentication testing
-• Event logic testing
-• Role access testing
+- Service layer testing
+- Controller testing
+- Authentication testing
+- Event logic testing
+- Role access testing
 
 ### Selenium
 
-• Login flow testing
-• Event creation testing
-• Team registration testing
-• Navigation testing
-• End-to-end testing
+- Login flow testing
+- Event creation testing
+- Team registration testing
+- Navigation testing
+- End-to-end testing
 
 ---
 
 # Future Enhancements
 
-• Email notifications
-• Payment integration
-• Event reminders
-• File upload support
-• Dashboard analytics
-• Mobile responsive improvements
+- Email notifications
+- Payment integration
+- Event reminders
+- File upload support
+- Dashboard analytics
+- Mobile responsive improvements
 
 ---
 
