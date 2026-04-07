@@ -48,6 +48,7 @@ EvConnect is a full-stack **Event Management SaaS Platform** that allows users t
 
 ### Backend
 
+````
 evconnect-backend/
 ├── model/
 ├── dto/
@@ -56,15 +57,18 @@ evconnect-backend/
 ├── controller/
 ├── security/
 └── config/
+````
 
 ### Frontend
 
+````
 evconnect-frontend/
 ├── pages/
 ├── components/
 ├── context/
 ├── services/
 └── assets/
+````
 
 ---
 
