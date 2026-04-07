@@ -1,10 +1,10 @@
-EVCONNECT – EVENT MANAGEMENT SAAS PLATFORM
+# EvConnect – Event Management SaaS Platform
 
-EvConnect is a full-stack Event Management SaaS Platform that allows users to register for events, organizers to create and manage events, and participants to form teams. The system supports role-based access control and secure authentication using JWT.
+EvConnect is a full-stack **Event Management SaaS Platform** that allows users to register for events, organizers to create and manage events, and participants to form teams. The system supports **role-based access control** and **secure authentication using JWT**.
 
 ---
 
-FEATURES
+# Features
 
 • User Registration & Login (JWT Authentication)
 • Role-Based Access Control (User, Organizer, Admin)
@@ -18,9 +18,10 @@ FEATURES
 
 ---
 
-TECH STACK
+# Tech Stack
 
-Backend
+### Backend
+
 • Java 17
 • Spring Boot 3
 • Spring Security
@@ -28,40 +29,46 @@ Backend
 • MongoDB
 • Lombok
 
-Frontend
+### Frontend
+
 • React (Vite)
 • JSX
 • Axios
 • Context API
 • CSS
 
-Testing
+### Testing
+
 • JUnit (Backend Testing)
 • Selenium (Frontend UI Testing)
 
 ---
 
-PROJECT STRUCTURE
+# Project Structure
 
-evconnect-backend
-model/
-dto/
-repository/
-service/
-controller/
-security/
-config/
+### Backend
 
-evconnect-frontend
-pages/
-components/
-context/
-services/
-assets/
+evconnect-backend/
+├── model/
+├── dto/
+├── repository/
+├── service/
+├── controller/
+├── security/
+└── config/
+
+### Frontend
+
+evconnect-frontend/
+├── pages/
+├── components/
+├── context/
+├── services/
+└── assets/
 
 ---
 
-ARCHITECTURE
+# Architecture
 
 Client
 ↓
@@ -75,31 +82,37 @@ MongoDB Database
 
 ---
 
-ROLES & PERMISSIONS
+# Roles & Permissions
 
-USER
+### USER
+
 • View events
 • Register for events
 • Create or join teams
 
-ORGANIZER
+### ORGANIZER
+
 • Create events
 • Update own events
 • Delete own events
 • Manage participants
 
-ADMIN
+### ADMIN
+
 • Manage all events
 • Manage users
 • Full system access
 
 ---
 
-INSTALLATION & SETUP
+# Installation & Setup
 
-Backend Setup
+### Backend Setup
 
+Clone repository
 git clone https://github.com/yourusername/evconnect.git
+
+Navigate to backend
 cd evconnect-backend
 
 Configure MongoDB in application.properties
@@ -115,10 +128,18 @@ http://localhost:8080
 
 ---
 
-Frontend Setup
+### Frontend Setup
+
+Navigate to frontend
 
 cd evconnect-frontend
+
+Install dependencies
+
 npm install
+
+Run application
+
 npm run dev
 
 Frontend runs on:
@@ -126,30 +147,34 @@ http://localhost:5173
 
 ---
 
-API ENDPOINTS
+# API Endpoints
 
-Auth APIs
+### Auth APIs
+
 POST /api/auth/register
 POST /api/auth/login
 
-Event APIs
+### Event APIs
+
 GET /api/events
 POST /api/events
 PUT /api/events/{id}
 DELETE /api/events/{id}
 
-Team APIs
+### Team APIs
+
 POST /api/teams
 POST /api/teams/{id}/join
 GET /api/teams
 
-Registration APIs
+### Registration APIs
+
 POST /api/registrations
 GET /api/registrations
 
 ---
 
-SECURITY
+# Security
 
 • JWT Authentication
 • Spring Security Filter Chain
@@ -159,7 +184,7 @@ SECURITY
 
 ---
 
-OOAD PRINCIPLES USED
+# OOAD Principles Used
 
 • Encapsulation
 • Abstraction
@@ -170,7 +195,7 @@ OOAD PRINCIPLES USED
 • Dependency Inversion Principle
 • Separation of Concerns
 
-Design Patterns
+### Design Patterns
 
 • Builder Pattern
 • Factory Method Pattern
@@ -180,16 +205,18 @@ Design Patterns
 
 ---
 
-TESTING
+# Testing
 
-JUnit
+### JUnit
+
 • Service layer testing
 • Controller testing
 • Authentication testing
 • Event logic testing
 • Role access testing
 
-Selenium
+### Selenium
+
 • Login flow testing
 • Event creation testing
 • Team registration testing
@@ -198,7 +225,7 @@ Selenium
 
 ---
 
-FUTURE ENHANCEMENTS
+# Future Enhancements
 
 • Email notifications
 • Payment integration
@@ -209,7 +236,7 @@ FUTURE ENHANCEMENTS
 
 ---
 
-AUTHOR
+# Author
 
 EvConnect Project
 Built using Spring Boot + React + MongoDB
