@@ -2,3 +2,8 @@ D:\OOAD+ST+SPM final project\EvConnect-java\evconnect-backend\src\test\java\com\
 D:\OOAD+ST+SPM final project\EvConnect-java\evconnect-backend\src\test\java\com\evconnect\api\service\RegistrationServiceTest.java
 D:\OOAD+ST+SPM final project\EvConnect-java\evconnect-backend\src\test\java\com\evconnect\api\service\TeamServiceTest.java
 D:\OOAD+ST+SPM final project\EvConnect-java\evconnect-backend\src\test\java\com\evconnect\api\service\UserServiceTest.java
+D:\OOAD+ST+SPM final project\EvConnect-java\evconnect-backend\src\test\java\com\evconnect\api\ui\AdminFlowSeleniumTest.java
+D:\OOAD+ST+SPM final project\EvConnect-java\evconnect-backend\src\test\java\com\evconnect\api\ui\AuthSeleniumTest.java
+D:\OOAD+ST+SPM final project\EvConnect-java\evconnect-backend\src\test\java\com\evconnect\api\ui\BaseSeleniumTest.java
+D:\OOAD+ST+SPM final project\EvConnect-java\evconnect-backend\src\test\java\com\evconnect\api\ui\OrganizerFlowSeleniumTest.java
+D:\OOAD+ST+SPM final project\EvConnect-java\evconnect-backend\src\test\java\com\evconnect\api\ui\UserFlowSeleniumTest.java
