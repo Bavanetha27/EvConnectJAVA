@@ -161,26 +161,34 @@ http://localhost:5173
 
 ### Auth APIs
 
+````
 POST /api/auth/register
 POST /api/auth/login
+````
 
 ### Event APIs
 
+````
 GET /api/events
 POST /api/events
 PUT /api/events/{id}
 DELETE /api/events/{id}
+````
 
 ### Team APIs
 
+````
 POST /api/teams
 POST /api/teams/{id}/join
 GET /api/teams
+````
 
 ### Registration APIs
 
+````
 POST /api/registrations
 GET /api/registrations
+````
 
 ---
 
