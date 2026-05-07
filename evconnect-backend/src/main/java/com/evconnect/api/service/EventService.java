@@ -51,10 +51,10 @@ public class EventService {
         return eventRepository.save(event);
     }
 
-    public void deleteEvent(String id, String organizerId) {
+    public void deleteEvent(String id, String userId, boolean isAdmin) {
         Event event = getEventById(id);
         
-        if (!event.getOrganizerId().equals(organizerId)) {
+        if (!isAdmin && !event.getOrganizerId().equals(userId)) {
             throw new RuntimeException("Not authorized to delete this event");
         }
         

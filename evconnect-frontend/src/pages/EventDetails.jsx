@@ -17,7 +17,8 @@ import {
     UserMinus,
     RefreshCw,
     ShieldCheck,
-    Loader2
+    Loader2,
+    Flag
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -38,6 +39,11 @@ const EventDetails = () => {
     const [teamName, setTeamName] = useState('');
     const [teamCode, setTeamCode] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
+    
+    // Report states
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportReason, setReportReason] = useState('');
+    const [reporting, setReporting] = useState(false);
 
     const isRegistered = registrations.some(r => r.userId === user?.id && r.eventId === id && r.status === 'CONFIRMED');
     const myTeam = teams.find(t => t.members?.some(m => m.id === user?.id));
@@ -80,6 +86,26 @@ const EventDetails = () => {
             toast.error(err.response?.data?.message || "Already registered or error occurred");
         } finally {
             setRegistering(false);
+        }
+    };
+
+    const handleReportSubmit = async (e) => {
+        e.preventDefault();
+        if (!user) {
+            toast.info("Please login to report this event");
+            navigate('/login');
+            return;
+        }
+        setReporting(true);
+        try {
+            await api.post('/reports', { eventId: id, reason: reportReason });
+            toast.success("Event reported successfully. Our team will review it.");
+            setShowReportModal(false);
+            setReportReason('');
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to submit report");
+        } finally {
+            setReporting(false);
         }
     };
 
@@ -424,11 +450,81 @@ const EventDetails = () => {
                                     Registration is required before <br /> team participation is enabled
                                 </p>
                             )}
+
+                            <div className="mt-8 pt-6 border-t border-gray-100 flex justify-center">
+                                <button 
+                                    onClick={() => setShowReportModal(true)}
+                                    className="text-xs font-bold text-gray-400 hover:text-red-500 transition-colors flex items-center gap-2"
+                                >
+                                    <Flag size={14} /> Report Suspicious Event
+                                </button>
+                            </div>
                         </motion.div>
                     </aside>
 
                 </div>
             </div>
+
+            {/* Report Modal */}
+            <AnimatePresence>
+                {showReportModal && (
+                    <motion.div 
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: 1 }} 
+                        exit={{ opacity: 0 }} 
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }} 
+                            animate={{ scale: 1, opacity: 1 }} 
+                            exit={{ scale: 0.95, opacity: 0 }} 
+                            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative"
+                        >
+                            <div className="absolute top-4 right-4">
+                                <button onClick={() => setShowReportModal(false)} className="text-gray-400 hover:text-gray-600 p-2">✕</button>
+                            </div>
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0">
+                                    <Flag size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-gray-900">Report Event</h3>
+                                    <p className="text-sm text-gray-500">Help us keep the platform safe</p>
+                                </div>
+                            </div>
+                            <form onSubmit={handleReportSubmit}>
+                                <div className="mb-6">
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Why are you reporting this event?</label>
+                                    <textarea 
+                                        required
+                                        rows="4"
+                                        placeholder="Please provide details about why this event is inappropriate or suspicious..."
+                                        value={reportReason}
+                                        onChange={(e) => setReportReason(e.target.value)}
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none resize-none transition-all"
+                                    ></textarea>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setShowReportModal(false)}
+                                        className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button 
+                                        type="submit" 
+                                        disabled={reporting}
+                                        className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50"
+                                    >
+                                        {reporting ? 'Submitting...' : 'Submit Report'}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

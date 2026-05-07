@@ -114,7 +114,7 @@ class EventServiceTest {
     void deleteEvent_WhenAuthorized_ShouldDelete() {
         when(eventRepository.findById("1")).thenReturn(Optional.of(testEvent));
 
-        eventService.deleteEvent("1", organizerId);
+        eventService.deleteEvent("1", organizerId, false);
 
         verify(eventRepository).delete(testEvent);
     }
@@ -123,7 +123,7 @@ class EventServiceTest {
     void deleteEvent_WhenNotAuthorized_ShouldThrowException() {
         when(eventRepository.findById("1")).thenReturn(Optional.of(testEvent));
 
-        assertThrows(RuntimeException.class, () -> eventService.deleteEvent("1", "otherOrg"));
+        assertThrows(RuntimeException.class, () -> eventService.deleteEvent("1", "otherOrg", false));
         verify(eventRepository, never()).delete(any(Event.class));
     }
 }

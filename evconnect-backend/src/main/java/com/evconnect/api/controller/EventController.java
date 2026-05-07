@@ -45,7 +45,8 @@ public class EventController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ORGANIZER') or hasRole('ADMIN')")
     public ResponseEntity<?> deleteEvent(@PathVariable String id, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        eventService.deleteEvent(id, userDetails.getId());
+        boolean isAdmin = userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        eventService.deleteEvent(id, userDetails.getId(), isAdmin);
         return ResponseEntity.ok().build();
     }
 }

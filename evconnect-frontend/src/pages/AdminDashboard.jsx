@@ -20,7 +20,8 @@ import {
     Briefcase,
     Mail,
     UserCircle,
-    Hash
+    Hash,
+    Flag
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -35,12 +36,14 @@ const AdminDashboard = () => {
     const [allUsers, setAllUsers] = useState([]);
     const [allTeams, setAllTeams] = useState([]);
     const [allRegistrations, setAllRegistrations] = useState([]);
+    const [allReports, setAllReports] = useState([]);
     
     const [stats, setStats] = useState({
         totalEvents: 0,
         totalUsers: 0,
         totalTeams: 0,
-        totalRegistrations: 0
+        totalRegistrations: 0,
+        totalReports: 0
     });
     
     const [loading, setLoading] = useState(true);
@@ -50,23 +53,26 @@ const AdminDashboard = () => {
         const fetchAdminData = async () => {
             setLoading(true);
             try {
-                const [eventsRes, usersRes, teamsRes, regRes] = await Promise.all([
+                const [eventsRes, usersRes, teamsRes, regRes, reportsRes] = await Promise.all([
                     api.get('/events'),
                     api.get('/users'),
                     api.get('/teams'),
-                    api.get('/registrations')
+                    api.get('/registrations'),
+                    api.get('/reports')
                 ]);
                 
                 setAllEvents(eventsRes.data);
                 setAllUsers(usersRes.data);
                 setAllTeams(teamsRes.data);
                 setAllRegistrations(regRes.data);
+                setAllReports(reportsRes.data);
                 
                 setStats({
                     totalEvents: eventsRes.data.length,
                     totalUsers: usersRes.data.length,
                     totalTeams: teamsRes.data.length,
-                    totalRegistrations: regRes.data.length
+                    totalRegistrations: regRes.data.length,
+                    totalReports: reportsRes.data.length
                 });
             } catch (err) {
                 toast.error('Failed to load administrative data');
@@ -85,8 +91,23 @@ const AdminDashboard = () => {
             toast.success("Event permanently purged");
             setAllEvents(allEvents.filter(e => e.id !== id));
             setStats(prev => ({ ...prev, totalEvents: prev.totalEvents - 1 }));
+            // Also cleanup reports for this event in UI
+            const remainingReports = allReports.filter(r => r.eventId !== id);
+            setAllReports(remainingReports);
+            setStats(prev => ({ ...prev, totalReports: remainingReports.length }));
         } catch (err) {
             toast.error("Administrative failure: Could not delete event");
+        }
+    };
+
+    const handleDismissReport = async (id) => {
+        try {
+            await api.delete(`/reports/${id}`);
+            toast.success("Report dismissed successfully");
+            setAllReports(allReports.filter(r => r.id !== id));
+            setStats(prev => ({ ...prev, totalReports: prev.totalReports - 1 }));
+        } catch (err) {
+            toast.error("Failed to dismiss report");
         }
     };
 
@@ -98,6 +119,23 @@ const AdminDashboard = () => {
         return allUsers.find(u => u.id === userId)?.username || "Unknown User";
     };
 
+    const getEventOrganizer = (eventId) => {
+        const event = allEvents.find(e => e.id === eventId);
+        if (!event) return null;
+        return allUsers.find(u => u.id === event.organizerId);
+    };
+
+    const isNewOrganization = (userId) => {
+        if (!userId) return false;
+        try {
+            const timestamp = parseInt(userId.substring(0, 8), 16) * 1000;
+            const userDate = new Date(timestamp);
+            const now = new Date();
+            const daysDiff = (now - userDate) / (1000 * 60 * 60 * 24);
+            return daysDiff <= 7;
+        } catch(e) { return false; }
+    };
+
     const filteredData = () => {
         const term = searchTerm.toLowerCase();
         if (activeTab === 'events' || activeTab === 'overview') {
@@ -106,6 +144,8 @@ const AdminDashboard = () => {
             return allUsers.filter(u => u.username.toLowerCase().includes(term) || u.email.toLowerCase().includes(term) || u.role.toLowerCase().includes(term));
         } else if (activeTab === 'teams') {
             return allTeams.filter(t => t.name.toLowerCase().includes(term) || getEventName(t.eventId).toLowerCase().includes(term));
+        } else if (activeTab === 'reports') {
+            return allReports.filter(r => r.reason.toLowerCase().includes(term) || getEventName(r.eventId).toLowerCase().includes(term));
         }
         return [];
     };
@@ -171,7 +211,7 @@ const AdminDashboard = () => {
                         <StatCard label="Total Events" value={stats.totalEvents} icon={Calendar} color="bg-blue-600" />
                         <StatCard label="Global Users" value={stats.totalUsers} icon={Users} color="bg-purple-600" />
                         <StatCard label="Active Teams" value={stats.totalTeams} icon={Activity} color="bg-emerald-600" />
-                        <StatCard label="Registrations" value={stats.totalRegistrations} icon={Hash} color="bg-amber-600" />
+                        <StatCard label="Reports" value={stats.totalReports} icon={Flag} color="bg-red-600" />
                     </div>
 
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[600px] flex flex-col">
@@ -181,6 +221,7 @@ const AdminDashboard = () => {
                             <TabButton id="events" label="Manage Events" icon={Calendar} />
                             <TabButton id="users" label="User Directory" icon={Users} />
                             <TabButton id="teams" label="Team Directory" icon={Briefcase} />
+                            <TabButton id="reports" label="Reports" icon={Flag} />
                         </div>
 
                         {/* Search & Content Area */}
@@ -332,10 +373,72 @@ const AdminDashboard = () => {
                                                                 {getUserName(t.leaderId)}
                                                             </td>
                                                             <td className="px-6 py-4 text-right">
-                                                                <span className="font-bold text-primary">{t.memberIds.length}</span> Members
+                                                                <span className="font-bold text-primary">{t.memberIds?.length || 0}</span> Members
                                                             </td>
                                                         </tr>
                                                     ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+
+                                    {/* ----- REPORTS TABLE ----- */}
+                                    {activeTab === 'reports' && (
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left">
+                                                <thead>
+                                                    <tr className="bg-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">
+                                                        <th className="px-6 py-4">Report Details</th>
+                                                        <th className="px-6 py-4">Event & Organizer</th>
+                                                        <th className="px-6 py-4">Reporter</th>
+                                                        <th className="px-6 py-4 text-right">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-100">
+                                                    {filteredData().map(r => {
+                                                        const organizer = getEventOrganizer(r.eventId);
+                                                        const isNewOrg = isNewOrganization(organizer?.id);
+                                                        
+                                                        return (
+                                                        <tr key={r.id} className="hover:bg-red-50/20 transition-colors">
+                                                            <td className="px-6 py-4">
+                                                                <div className="text-sm font-medium text-gray-900 max-w-xs truncate" title={r.reason}>
+                                                                    {r.reason}
+                                                                </div>
+                                                                <div className="text-xs text-gray-400 mt-1">
+                                                                    {new Date(r.createdAt || Date.now()).toLocaleDateString()}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                <div className="font-bold text-gray-900">{getEventName(r.eventId)}</div>
+                                                                <div className="flex items-center gap-2 mt-1">
+                                                                    <span className="text-xs text-gray-500">Org: {organizer?.username || 'Unknown'}</span>
+                                                                    {isNewOrg && (
+                                                                        <span className="px-1.5 py-0.5 bg-red-100 text-red-700 text-[9px] font-black uppercase rounded">NEW ORG</span>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-sm text-gray-600">
+                                                                {getUserName(r.userId)}
+                                                            </td>
+                                                            <td className="px-6 py-4 text-right">
+                                                                <div className="flex justify-end gap-2">
+                                                                    <button 
+                                                                        onClick={() => handleDismissReport(r.id)}
+                                                                        className="px-3 py-1.5 text-xs font-bold text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                                                                    >
+                                                                        Dismiss
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => handleDeleteEvent(r.eventId)}
+                                                                        className="px-3 py-1.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm"
+                                                                    >
+                                                                        Delete Event
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    )})}
                                                 </tbody>
                                             </table>
                                         </div>

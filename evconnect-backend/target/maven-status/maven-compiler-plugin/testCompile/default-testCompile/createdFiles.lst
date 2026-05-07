@@ -1,2 +1,8 @@
+com\evconnect\api\service\UserServiceTest.class
+com\evconnect\api\ui\UserFlowSeleniumTest.class
+com\evconnect\api\service\RegistrationServiceTest.class
+com\evconnect\api\ui\OrganizerFlowSeleniumTest.class
+com\evconnect\api\service\TeamServiceTest.class
 com\evconnect\api\ui\BaseSeleniumTest.class
+com\evconnect\api\ui\AdminFlowSeleniumTest.class
 com\evconnect\api\ui\AuthSeleniumTest.class
