@@ -2,18 +2,18 @@ import React, { useEffect, useState, useContext } from 'react';
 import api from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
-import { 
-    LayoutDashboard, 
-    Calendar, 
-    Users, 
-    ShieldCheck, 
-    PlusCircle, 
-    Trash2, 
-    Settings, 
-    Activity, 
-    Loader2, 
-    Globe, 
-    TrendingUp, 
+import {
+    LayoutDashboard,
+    Calendar,
+    Users,
+    ShieldCheck,
+    PlusCircle,
+    Trash2,
+    Settings,
+    Activity,
+    Loader2,
+    Globe,
+    TrendingUp,
     Search,
     AlertTriangle,
     Eye,
@@ -30,17 +30,17 @@ const AdminDashboard = () => {
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('overview');
-    
+
     // Data States
     const [allEvents, setAllEvents] = useState([]);
     const [allUsers, setAllUsers] = useState([]);
     const [allTeams, setAllTeams] = useState([]);
     const [allRegistrations, setAllRegistrations] = useState([]);
     const [allReports, setAllReports] = useState([]);
-    
+
     // Modal State
     const [selectedTeam, setSelectedTeam] = useState(null);
-    
+
     const [stats, setStats] = useState({
         totalEvents: 0,
         totalUsers: 0,
@@ -48,10 +48,10 @@ const AdminDashboard = () => {
         totalRegistrations: 0,
         totalReports: 0
     });
-    
+
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    
+
     // Pagination States
     const [pages, setPages] = useState({
         events: 0,
@@ -71,7 +71,7 @@ const AdminDashboard = () => {
     useEffect(() => {
         const fetchAdminData = async () => {
             if (!user) return; // Wait until user is loaded
-            
+
             setLoading(true);
             try {
                 // We'll fetch stats separately or from the first page responses
@@ -82,13 +82,13 @@ const AdminDashboard = () => {
                     api.get('/registrations'), // Keeping registrations as is for stats
                     api.get('/reports') // Keeping reports as is for now
                 ]);
-                
+
                 setAllEvents(eventsRes.data.content);
                 setAllUsers(usersRes.data.content);
                 setAllTeams(teamsRes.data.content);
                 setAllRegistrations(regRes.data);
                 setAllReports(reportsRes.data);
-                
+
                 setTotalPages({
                     events: eventsRes.data.totalPages,
                     users: usersRes.data.totalPages,
@@ -114,7 +114,7 @@ const AdminDashboard = () => {
     }, [pages]); // Re-fetch when page changes
 
     const handleDeleteEvent = async (id) => {
-        if(!window.confirm("CRITICAL: Are you sure you want to PERMANENTLY delete this event?")) return;
+        if (!window.confirm("CRITICAL: Are you sure you want to PERMANENTLY delete this event?")) return;
         try {
             await api.delete(`/events/${id}`);
             toast.success("Event permanently purged");
@@ -162,7 +162,7 @@ const AdminDashboard = () => {
             const now = new Date();
             const daysDiff = (now - userDate) / (1000 * 60 * 60 * 24);
             return daysDiff <= 7;
-        } catch(e) { return false; }
+        } catch (e) { return false; }
     };
 
     const filteredData = () => {
@@ -196,25 +196,24 @@ const AdminDashboard = () => {
     const TabButton = ({ id, label, icon: Icon }) => (
         <button
             onClick={() => { setActiveTab(id); setSearchTerm(''); }}
-            className={`flex items-center gap-2 px-6 py-4 font-bold text-sm transition-all border-b-2 ${
-                activeTab === id 
-                ? 'border-primary text-primary bg-primary/5' 
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-            }`}
+            className={`flex items-center gap-2 px-6 py-4 font-bold text-sm transition-all border-b-2 ${activeTab === id
+                    ? 'border-primary text-primary bg-primary/5'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                }`}
         >
             <Icon size={18} /> {label}
         </button>
     );
 
     const TeamMembersModal = ({ team, onClose }) => (
-        <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
         >
-            <motion.div 
+            <motion.div
                 initial={{ scale: 0.9, y: 20 }}
                 animate={{ scale: 1, y: 0 }}
                 className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl border border-gray-100"
@@ -245,17 +244,17 @@ const AdminDashboard = () => {
                                     {member.username}
                                     {member.id === team.leaderId && <span className="ml-2 text-[9px] bg-primary text-white px-1.5 py-0.5 rounded uppercase font-black">Leader</span>}
                                 </div>
-                                <div className="text-[10px] text-gray-400 font-mono">UID: {member.id.substring(0,8)}</div>
+                                <div className="text-[10px] text-gray-400 font-mono">UID: {member.id.substring(0, 8)}</div>
                             </div>
                         </div>
                     ))}
                 </div>
 
-                <button 
+                <button
                     onClick={onClose}
                     className="w-full mt-8 py-3 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 transition-all shadow-lg"
                 >
-                    Close Roster
+                    Close
                 </button>
             </motion.div>
         </motion.div>
@@ -313,8 +312,8 @@ const AdminDashboard = () => {
                             <div className="mb-6 flex justify-between items-center">
                                 <div className="relative w-full max-w-md">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         placeholder={`Search ${activeTab}...`}
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -350,7 +349,7 @@ const AdminDashboard = () => {
                                                         <tr key={event.id} className="hover:bg-gray-50/50 transition-colors">
                                                             <td className="px-6 py-4">
                                                                 <div className="font-bold text-gray-900">{event.title}</div>
-                                                                <div className="text-xs text-gray-400 font-mono">ID: {event.id.substring(0,8)}</div>
+                                                                <div className="text-xs text-gray-400 font-mono">ID: {event.id.substring(0, 8)}</div>
                                                             </td>
                                                             <td className="px-6 py-4">
                                                                 <span className="px-2 py-1 bg-gray-100 text-gray-600 text-[10px] font-black uppercase rounded border border-gray-200">
@@ -366,7 +365,7 @@ const AdminDashboard = () => {
                                                                     <Link to={`/events/${event.id}`} className="p-2 text-gray-400 hover:text-primary transition-colors hover:bg-primary/5 rounded-lg">
                                                                         <Eye size={18} />
                                                                     </Link>
-                                                                    <button 
+                                                                    <button
                                                                         onClick={() => handleDeleteEvent(event.id)}
                                                                         className="p-2 text-gray-400 hover:text-red-600 transition-colors hover:bg-red-50 rounded-lg"
                                                                     >
@@ -408,11 +407,10 @@ const AdminDashboard = () => {
                                                                 </div>
                                                             </td>
                                                             <td className="px-6 py-4">
-                                                                <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
-                                                                    u.role === 'ADMIN' ? 'bg-indigo-100 text-indigo-700' : 
-                                                                    u.role === 'ORGANIZER' ? 'bg-amber-100 text-amber-700' : 
-                                                                    'bg-gray-100 text-gray-700'
-                                                                }`}>
+                                                                <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${u.role === 'ADMIN' ? 'bg-indigo-100 text-indigo-700' :
+                                                                        u.role === 'ORGANIZER' ? 'bg-amber-100 text-amber-700' :
+                                                                            'bg-gray-100 text-gray-700'
+                                                                    }`}>
                                                                     {u.role}
                                                                 </span>
                                                             </td>
@@ -447,13 +445,13 @@ const AdminDashboard = () => {
                                                     {filteredData().map(t => (
                                                         <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
                                                             <td className="px-6 py-4">
-                                                                <button 
+                                                                <button
                                                                     onClick={() => setSelectedTeam(t)}
                                                                     className="font-bold text-gray-900 hover:text-primary transition-colors text-left"
                                                                 >
                                                                     {t.name}
                                                                 </button>
-                                                                <div className="text-xs text-gray-400 font-mono">Team ID: {t.id.substring(0,8)}</div>
+                                                                <div className="text-xs text-gray-400 font-mono">Team ID: {t.id.substring(0, 8)}</div>
                                                             </td>
                                                             <td className="px-6 py-4 text-sm text-gray-600">
                                                                 {t.eventName || "Unknown Event"}
@@ -487,44 +485,45 @@ const AdminDashboard = () => {
                                                     {filteredData().map(r => {
                                                         const organizer = getEventOrganizer(r.eventId);
                                                         const isNewOrg = isNewOrganization(organizer?.id);
-                                                        
+
                                                         return (
-                                                        <tr key={r.id} className="hover:bg-red-50/20 transition-colors">
-                                                            <td className="px-6 py-4">
-                                                                <div className="text-sm font-medium text-gray-900 max-w-xs truncate" title={r.reason}>
-                                                                    {r.reason}
-                                                                </div>
-                                                                <div className="text-xs text-gray-400 mt-1">
-                                                                    {new Date(r.createdAt || Date.now()).toLocaleDateString()}
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                <div className="font-bold text-gray-900">{r.eventName || "Unknown Event"}</div>
-                                                                <div className="flex items-center gap-2 mt-1">
-                                                                    <span className="text-xs text-gray-500">Event ID: {r.eventId.substring(0,8)}</span>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-6 py-4 text-sm text-gray-600">
-                                                                {r.username || "Unknown User"}
-                                                            </td>
-                                                            <td className="px-6 py-4 text-right">
-                                                                <div className="flex justify-end gap-2">
-                                                                    <button 
-                                                                        onClick={() => handleDismissReport(r.id)}
-                                                                        className="px-3 py-1.5 text-xs font-bold text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                                                                    >
-                                                                        Dismiss
-                                                                    </button>
-                                                                    <button 
-                                                                        onClick={() => handleDeleteEvent(r.eventId)}
-                                                                        className="px-3 py-1.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm"
-                                                                    >
-                                                                        Delete Event
-                                                                    </button>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    )})}
+                                                            <tr key={r.id} className="hover:bg-red-50/20 transition-colors">
+                                                                <td className="px-6 py-4">
+                                                                    <div className="text-sm font-medium text-gray-900 max-w-xs truncate" title={r.reason}>
+                                                                        {r.reason}
+                                                                    </div>
+                                                                    <div className="text-xs text-gray-400 mt-1">
+                                                                        {new Date(r.createdAt || Date.now()).toLocaleDateString()}
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <div className="font-bold text-gray-900">{r.eventName || "Unknown Event"}</div>
+                                                                    <div className="flex items-center gap-2 mt-1">
+                                                                        <span className="text-xs text-gray-500">Event ID: {r.eventId.substring(0, 8)}</span>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-sm text-gray-600">
+                                                                    {r.username || "Unknown User"}
+                                                                </td>
+                                                                <td className="px-6 py-4 text-right">
+                                                                    <div className="flex justify-end gap-2">
+                                                                        <button
+                                                                            onClick={() => handleDismissReport(r.id)}
+                                                                            className="px-3 py-1.5 text-xs font-bold text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                                                                        >
+                                                                            Dismiss
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleDeleteEvent(r.eventId)}
+                                                                            className="px-3 py-1.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm"
+                                                                        >
+                                                                            Delete Event
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        )
+                                                    })}
                                                 </tbody>
                                             </table>
                                         </div>
@@ -570,9 +569,9 @@ const AdminDashboard = () => {
 
             <AnimatePresence>
                 {selectedTeam && (
-                    <TeamMembersModal 
-                        team={selectedTeam} 
-                        onClose={() => setSelectedTeam(null)} 
+                    <TeamMembersModal
+                        team={selectedTeam}
+                        onClose={() => setSelectedTeam(null)}
                     />
                 )}
             </AnimatePresence>
