@@ -8,12 +8,17 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Document(collection = "events")
-public class Event {
+public class Event implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     private String id;

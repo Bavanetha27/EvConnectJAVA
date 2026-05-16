@@ -51,23 +51,32 @@ const EventDetails = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [eventRes, teamsRes, regRes] = await Promise.all([
+                // Always fetch public data
+                const [eventRes, teamsRes] = await Promise.all([
                     api.get(`/events/${id}`),
-                    api.get(`/teams/event/${id}`),
-                    api.get('/registrations/me')
+                    api.get(`/teams/event/${id}`)
                 ]);
                 setEvent(eventRes.data);
                 setTeams(teamsRes.data);
-                setRegistrations(regRes.data);
+
+                // Only fetch registrations if user is logged in
+                if (user) {
+                    const regRes = await api.get('/registrations/me');
+                    setRegistrations(regRes.data);
+                }
             } catch (err) {
-                toast.error("Error loading event resources");
-                navigate('/events');
+                console.error("Error loading event resources", err);
+                // Don't toast/redirect if it's just a 401 on registrations
+                if (err.response?.status !== 401) {
+                    toast.error("Error loading event details");
+                    navigate('/events');
+                }
             } finally {
                 setLoading(false);
             }
         };
         fetchData();
-    }, [id, navigate]);
+    }, [id, navigate, user]);
 
     const handleRegister = async () => {
         if (!user) {
@@ -220,175 +229,168 @@ const EventDetails = () => {
                             </div>
                         </section>
 
-                        {/* Team Coordination Section */}
-                        <section className="space-y-6">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                                <div>
-                                    <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                                        <Users className="text-accent" size={28} /> Team Collaboration
-                                    </h3>
-                                    <p className="text-gray-500 mt-1">One team per user. Join by code or create your own.</p>
+                        {/* Team Coordination Section - Only visible to logged-in users */}
+                        {user && (
+                            <section className="space-y-6">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                                            <Users className="text-accent" size={28} /> Team Collaboration
+                                        </h3>
+                                        <p className="text-gray-500 mt-1">One team per user. Join by code or create your own.</p>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Team Action Buttons */}
-                            {!myTeam && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <button 
-                                        onClick={() => { setShowCreateForm(true); setShowJoinForm(false); }}
-                                        className="flex items-center justify-center gap-3 p-6 bg-white border-2 border-dashed border-gray-200 rounded-3xl hover:border-primary hover:bg-primary/5 transition-all group"
-                                    >
-                                        <PlusCircle size={24} className="text-primary group-hover:scale-110 transition-transform" />
-                                        <div className="text-left">
-                                            <p className="font-bold text-gray-900">Create New Team</p>
-                                            <p className="text-xs text-gray-500">Be the leader of your squad</p>
-                                        </div>
-                                    </button>
-                                    <button 
-                                        onClick={() => { setShowJoinForm(true); setShowCreateForm(false); }}
-                                        className="flex items-center justify-center gap-3 p-6 bg-white border-2 border-dashed border-gray-200 rounded-3xl hover:border-accent hover:bg-accent/5 transition-all group"
-                                    >
-                                        <Lock size={24} className="text-accent group-hover:rotate-12 transition-transform" />
-                                        <div className="text-left">
-                                            <p className="font-bold text-gray-900">Join with Code</p>
-                                            <p className="text-xs text-gray-500">Enter a 6-digit team code</p>
-                                        </div>
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* Conditional Forms */}
-                            <AnimatePresence>
-                                {showCreateForm && !myTeam && (
-                                    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="bg-white p-8 rounded-3xl border border-gray-200 shadow-xl overflow-hidden relative">
-                                        <div className="absolute top-0 right-0 p-4">
-                                            <button onClick={() => setShowCreateForm(false)} className="text-gray-400 hover:text-gray-600">✕</button>
-                                        </div>
-                                        <h4 className="text-lg font-bold mb-6">Create Your Team</h4>
-                                        <form onSubmit={handleCreateTeam} className="flex flex-col sm:flex-row gap-4">
-                                            <input 
-                                                required 
-                                                autoFocus
-                                                placeholder="Enter a creative team name..." 
-                                                value={teamName}
-                                                onChange={(e) => setTeamName(e.target.value)}
-                                                className="flex-1 px-5 py-3.5 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-primary/10 focus:outline-none transition-all text-lg"
-                                            />
-                                            <button 
-                                                disabled={actionLoading}
-                                                className="bg-primary hover:bg-secondary text-white font-black py-4 px-10 rounded-2xl shadow-lg transition-all disabled:opacity-50"
-                                            >
-                                                {actionLoading ? 'Initializing...' : 'Form Team'}
-                                            </button>
-                                        </form>
-                                    </motion.div>
-                                )}
-
-                                {showJoinForm && !myTeam && (
-                                    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="bg-white p-8 rounded-3xl border border-accent/30 shadow-xl overflow-hidden relative">
-                                        <div className="absolute top-0 right-0 p-4">
-                                            <button onClick={() => setShowJoinForm(false)} className="text-gray-400 hover:text-gray-600">✕</button>
-                                        </div>
-                                        <h4 className="text-lg font-bold mb-6">Join a Team</h4>
-                                        <form onSubmit={handleJoinByCode} className="flex flex-col sm:flex-row gap-4">
-                                            <input 
-                                                required 
-                                                autoFocus
-                                                maxLength={6}
-                                                placeholder="Enter 6-digit Code (e.g. ABC123)" 
-                                                value={teamCode}
-                                                onChange={(e) => setTeamCode(e.target.value.toUpperCase())}
-                                                className="flex-1 px-5 py-3.5 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-accent/10 focus:outline-none transition-all text-lg tracking-[0.5em] font-mono text-center"
-                                            />
-                                            <button 
-                                                disabled={actionLoading}
-                                                className="bg-accent hover:bg-accent/80 text-white font-black py-4 px-10 rounded-2xl shadow-lg transition-all disabled:opacity-50"
-                                            >
-                                                {actionLoading ? 'Verifying...' : 'Join Now'}
-                                            </button>
-                                        </form>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-
-                            {/* Teams Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {teams.map((team) => {
-                                    const isMyTeam = team.members?.some(m => m.id === user?.id);
-                                    const isLeader = team.leaderId === user?.id;
-                                    
-                                    return (
-                                        <motion.div 
-                                            key={team.id}
-                                            layout
-                                            className={`bg-white rounded-[2rem] p-8 border-2 transition-all ${
-                                                isMyTeam ? 'border-primary shadow-lg ring-4 ring-primary/5' : 'border-gray-50'
-                                            }`}
+                                {/* Team Action Buttons */}
+                                {!myTeam && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <button 
+                                            onClick={() => { setShowCreateForm(true); setShowJoinForm(false); }}
+                                            className="flex items-center justify-center gap-3 p-6 bg-white border-2 border-dashed border-gray-200 rounded-3xl hover:border-primary hover:bg-primary/5 transition-all group"
                                         >
-                                            <div className="flex justify-between items-start mb-6">
-                                                <div>
-                                                    <h4 className="text-xl font-black text-gray-900 group flex items-center gap-2">
-                                                        {team.name}
-                                                        {isLeader && <ShieldCheck className="text-indigo-500" size={18} />}
-                                                    </h4>
-                                                    <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">
-                                                        {team.members?.length || 0} Participants
-                                                    </p>
-                                                </div>
-                                                {isLeader && (
-                                                    <div className="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-xl border border-indigo-100 flex flex-col items-center">
-                                                        <span className="text-[10px] font-black uppercase opacity-60">Team Code</span>
-                                                        <span className="text-sm font-mono font-black tracking-wider">{team.teamCode}</span>
-                                                    </div>
-                                                )}
+                                            <PlusCircle size={24} className="text-primary group-hover:scale-110 transition-transform" />
+                                            <div className="text-left">
+                                                <p className="font-bold text-gray-900">Create New Team</p>
+                                                <p className="text-xs text-gray-500">Be the leader of your squad</p>
                                             </div>
+                                        </button>
+                                        <button 
+                                            onClick={() => { setShowJoinForm(true); setShowCreateForm(false); }}
+                                            className="flex items-center justify-center gap-3 p-6 bg-white border-2 border-dashed border-gray-200 rounded-3xl hover:border-accent hover:bg-accent/5 transition-all group"
+                                        >
+                                            <Lock size={24} className="text-accent group-hover:rotate-12 transition-transform" />
+                                            <div className="text-left">
+                                                <p className="font-bold text-gray-900">Join with Code</p>
+                                                <p className="text-xs text-gray-500">Enter a 6-digit team code</p>
+                                            </div>
+                                        </button>
+                                    </div>
+                                )}
 
-                                            <div className="space-y-3 mb-6">
-                                                {team.members?.map((member) => (
-                                                    <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl group/item">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-400">
-                                                                {member.username.substring(0, 2).toUpperCase()}
-                                                            </div>
-                                                            <span className="text-sm font-semibold text-gray-700">
-                                                                {member.username}
-                                                                {member.id === team.leaderId && <span className="ml-2 text-[10px] text-primary italic font-bold">Leader</span>}
-                                                            </span>
+                                {/* Conditional Forms */}
+                                <AnimatePresence>
+                                    {showCreateForm && !myTeam && (
+                                        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="bg-white p-8 rounded-3xl border border-gray-200 shadow-xl overflow-hidden relative">
+                                            <div className="absolute top-0 right-0 p-4">
+                                                <button onClick={() => setShowCreateForm(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+                                            </div>
+                                            <h4 className="text-lg font-bold mb-6">Create Your Team</h4>
+                                            <form onSubmit={handleCreateTeam} className="flex flex-col sm:flex-row gap-4">
+                                                <input 
+                                                    required 
+                                                    autoFocus
+                                                    placeholder="Enter a creative team name..." 
+                                                    value={teamName}
+                                                    onChange={(e) => setTeamName(e.target.value)}
+                                                    className="flex-1 px-5 py-3.5 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-primary/10 focus:outline-none transition-all text-lg"
+                                                />
+                                                <button 
+                                                    disabled={actionLoading}
+                                                    className="bg-primary hover:bg-secondary text-white font-black py-4 px-10 rounded-2xl shadow-lg transition-all disabled:opacity-50"
+                                                >
+                                                    {actionLoading ? 'Initializing...' : 'Form Team'}
+                                                </button>
+                                            </form>
+                                        </motion.div>
+                                    )}
+
+                                    {showJoinForm && !myTeam && (
+                                        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="bg-white p-8 rounded-3xl border border-accent/30 shadow-xl overflow-hidden relative">
+                                            <div className="absolute top-0 right-0 p-4">
+                                                <button onClick={() => setShowJoinForm(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+                                            </div>
+                                            <h4 className="text-lg font-bold mb-6">Join a Team</h4>
+                                            <form onSubmit={handleJoinByCode} className="flex flex-col sm:flex-row gap-4">
+                                                <input 
+                                                    required 
+                                                    autoFocus
+                                                    maxLength={6}
+                                                    placeholder="Enter 6-digit Code (e.g. ABC123)" 
+                                                    value={teamCode}
+                                                    onChange={(e) => setTeamCode(e.target.value.toUpperCase())}
+                                                    className="flex-1 px-5 py-3.5 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-accent/10 focus:outline-none transition-all text-lg tracking-[0.5em] font-mono text-center"
+                                                />
+                                                <button 
+                                                    disabled={actionLoading}
+                                                    className="bg-accent hover:bg-accent/80 text-white font-black py-4 px-10 rounded-2xl shadow-lg transition-all disabled:opacity-50"
+                                                >
+                                                    {actionLoading ? 'Verifying...' : 'Join Now'}
+                                                </button>
+                                            </form>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* Teams Grid - Securely filtered by the backend */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {teams.map((team) => {
+                                            const isLeader = team.leaderId === user?.id;
+                                            
+                                            return (
+                                                <motion.div 
+                                                    key={team.id}
+                                                    layout
+                                                    className="bg-white rounded-[2rem] p-8 border-2 border-primary shadow-lg ring-4 ring-primary/5 transition-all"
+                                                >
+                                                    <div className="flex justify-between items-start mb-6">
+                                                        <div>
+                                                            <h4 className="text-xl font-black text-gray-900 group flex items-center gap-2">
+                                                                {team.name}
+                                                                {isLeader && <ShieldCheck className="text-indigo-500" size={18} />}
+                                                            </h4>
+                                                            <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">
+                                                                {team.members?.length || 0} Participants
+                                                            </p>
                                                         </div>
-                                                        {isLeader && member.id !== team.leaderId && (
-                                                            <button 
-                                                                onClick={() => handleRemoveMember(team.id, member.id)}
-                                                                className="opacity-0 group-hover/item:opacity-100 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                                            >
-                                                                <UserMinus size={16} />
-                                                            </button>
+                                                        {isLeader && (
+                                                            <div className="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-xl border border-indigo-100 flex flex-col items-center">
+                                                                <span className="text-[10px] font-black uppercase opacity-60">Team Code</span>
+                                                                <span className="text-sm font-mono font-black tracking-wider">{team.teamCode}</span>
+                                                            </div>
                                                         )}
                                                     </div>
-                                                ))}
-                                            </div>
 
-                                            {isMyTeam ? (
-                                                <div className="w-full py-3 bg-primary/10 text-primary text-center rounded-2xl text-sm font-black border border-primary/20">
-                                                    YOU ARE IN THIS TEAM
-                                                </div>
-                                            ) : (
-                                                <div className="w-full py-3 bg-gray-50 text-gray-400 text-center rounded-2xl text-xs font-bold italic">
-                                                    Join via code to participate
-                                                </div>
-                                            )}
-                                        </motion.div>
-                                    );
-                                })}
-                            </div>
+                                                    <div className="space-y-3 mb-6">
+                                                        {team.members?.map((member) => (
+                                                            <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl group/item">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-400">
+                                                                        {member.username.substring(0, 2).toUpperCase()}
+                                                                    </div>
+                                                                    <span className="text-sm font-semibold text-gray-700">
+                                                                        {member.username}
+                                                                        {member.id === team.leaderId && <span className="ml-2 text-[10px] text-primary italic font-bold">Leader</span>}
+                                                                    </span>
+                                                                </div>
+                                                                {isLeader && member.id !== team.leaderId && (
+                                                                    <button 
+                                                                        onClick={() => handleRemoveMember(team.id, member.id)}
+                                                                        className="opacity-0 group-hover/item:opacity-100 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                                    >
+                                                                        <UserMinus size={16} />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
 
-                            {teams.length === 0 && (
-                                <div className="text-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-gray-100">
-                                    <Users className="mx-auto text-gray-200 mb-6" size={64} strokeWidth={1} />
-                                    <p className="text-gray-500 font-bold text-xl">No active teams yet</p>
-                                    <p className="text-gray-400 text-sm mt-2">Be the first to start a movement for this event.</p>
+                                                    <div className="w-full py-3 bg-primary/10 text-primary text-center rounded-2xl text-sm font-black border border-primary/20">
+                                                        YOU ARE IN THIS TEAM
+                                                    </div>
+                                                </motion.div>
+                                            );
+                                        })}
                                 </div>
-                            )}
-                        </section>
+
+                                {teams.length === 0 && (
+                                    <div className="text-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-gray-100">
+                                        <Users className="mx-auto text-gray-200 mb-6" size={64} strokeWidth={1} />
+                                        <p className="text-gray-500 font-bold text-xl">No active teams yet</p>
+                                        <p className="text-gray-400 text-sm mt-2">Be the first to start a movement for this event.</p>
+                                    </div>
+                                )}
+                            </section>
+                        )}
                     </div>
 
                     {/* Right Sticky Sidebar */}

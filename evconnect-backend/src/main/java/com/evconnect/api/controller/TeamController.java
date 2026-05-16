@@ -46,8 +46,11 @@ public class TeamController {
     }
 
     @GetMapping("/event/{eventId}")
-    public ResponseEntity<List<TeamResponseDto>> getTeamsByEvent(@PathVariable String eventId) {
-        return ResponseEntity.ok(teamService.getTeamsByEvent(eventId));
+    public ResponseEntity<List<TeamResponseDto>> getTeamsByEvent(
+            @PathVariable String eventId, 
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        String userId = (userDetails != null) ? userDetails.getId() : null;
+        return ResponseEntity.ok(teamService.getTeamsByEvent(eventId, userId));
     }
 
     @GetMapping

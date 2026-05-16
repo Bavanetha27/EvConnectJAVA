@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
+import { AuthContext } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, Search, ArrowRight, Filter } from 'lucide-react';
+import { Calendar, MapPin, Search, ArrowRight, Filter, CheckCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const Events = () => {
+    const { user } = React.useContext(AuthContext);
     const [events, setEvents] = useState([]);
+    const [registrations, setRegistrations] = useState([]);
     const [search, setSearch] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [timeFilter, setTimeFilter] = useState('Upcoming'); // Upcoming, All, Past
@@ -16,17 +19,26 @@ const Events = () => {
 
     useEffect(() => {
         const fetchEvents = async () => {
+            setLoading(true);
             try {
                 const res = await api.get('/events');
                 setEvents(res.data);
+                
+                // If logged in, fetch registrations to show badges
+                if (user) {
+                    const regRes = await api.get('/registrations/me');
+                    setRegistrations(regRes.data);
+                } else {
+                    setRegistrations([]);
+                }
             } catch (err) {
-                toast.error("Failed to load events");
+                console.error("Failed to load events", err);
             } finally {
                 setLoading(false);
             }
         };
         fetchEvents();
-    }, []);
+    }, [user]); // Re-run when login state changes!
 
     const filteredEvents = events.filter(e => {
         const matchesSearch = e.title.toLowerCase().includes(search.toLowerCase()) || 
@@ -43,6 +55,10 @@ const Events = () => {
         
         return matchesSearch && matchesCategory && matchesTime;
     });
+
+    const isUserRegistered = (eventId) => {
+        return registrations.some(r => r.eventId === eventId && r.status === 'CONFIRMED');
+    };
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
@@ -110,6 +126,28 @@ const Events = () => {
                     </div>
                 </div>
             </div>
+            
+            {/* Guest Welcome Banner */}
+            {!user && (
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-12 bg-gradient-to-r from-gray-900 to-primary p-1 rounded-[2rem] shadow-2xl overflow-hidden"
+                >
+                    <div className="bg-white/5 backdrop-blur-md p-8 md:p-12 rounded-[1.8rem] flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div className="text-center md:text-left">
+                            <h2 className="text-3xl font-black text-white mb-2">Join the Movement</h2>
+                            <p className="text-white/70 font-medium">Create an account to register for events, build teams, and track your history.</p>
+                        </div>
+                        <Link 
+                            to="/register" 
+                            className="bg-white text-gray-900 px-8 py-4 rounded-2xl font-black hover:scale-105 transition-all shadow-xl whitespace-nowrap"
+                        >
+                            Sign Up Now
+                        </Link>
+                    </div>
+                </motion.div>
+            )}
 
             {/* Event Grid */}
             <AnimatePresence mode="wait">
@@ -167,10 +205,15 @@ const Events = () => {
                                         {event.category || 'EVENT'}
                                     </h3>
                                     
-                                    <div className="absolute top-4 left-4 z-20">
+                                    <div className="absolute top-4 left-4 z-20 flex gap-2">
                                         <span className="bg-white/90 backdrop-blur-sm text-gray-900 text-[10px] font-black px-3 py-1.5 rounded-full shadow-sm uppercase tracking-widest border border-white">
                                             {event.category || 'General'}
                                         </span>
+                                        {isUserRegistered(event.id) && (
+                                            <span className="bg-green-500 text-white text-[10px] font-black px-3 py-1.5 rounded-full shadow-sm uppercase tracking-widest flex items-center gap-1 border border-green-400">
+                                                <CheckCircle size={10} /> Registered
+                                            </span>
+                                        )}
                                     </div>
                                     
                                     <div className="absolute bottom-6 left-6 z-20 flex flex-col items-start">

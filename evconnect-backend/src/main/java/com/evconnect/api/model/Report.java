@@ -9,12 +9,17 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Document(collection = "reports")
-public class Report {
+public class Report implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     private String id;

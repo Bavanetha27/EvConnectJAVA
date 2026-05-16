@@ -6,7 +6,6 @@ import com.evconnect.api.dto.TeamResponseDto;
 import com.evconnect.api.model.Team;
 import com.evconnect.api.repository.EventRepository;
 import com.evconnect.api.repository.TeamRepository;
-import com.evconnect.api.repository.UserRepository;
 import com.evconnect.api.repository.RegistrationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +21,7 @@ public class TeamService {
 
     private final TeamRepository teamRepository;
     private final EventRepository eventRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final RegistrationRepository registrationRepository;
 
     public TeamResponseDto createTeam(TeamDto dto, String leaderId) {
@@ -108,9 +107,14 @@ public class TeamService {
                 .stream().map(this::mapToResponseDto).collect(Collectors.toList());
     }
 
-    public List<TeamResponseDto> getTeamsByEvent(String eventId) {
+    public List<TeamResponseDto> getTeamsByEvent(String eventId, String userId) {
+        if (userId == null) return new ArrayList<>();
+        
         return teamRepository.findByEventId(eventId)
-                .stream().map(this::mapToResponseDto).collect(Collectors.toList());
+                .stream()
+                .filter(team -> team.getMemberIds() != null && team.getMemberIds().contains(userId))
+                .map(this::mapToResponseDto)
+                .collect(Collectors.toList());
     }
 
     public List<TeamResponseDto> getAllTeams() {
@@ -124,18 +128,24 @@ public class TeamService {
 
         List<TeamMemberDto> memberDtos = memberIds.stream()
                 .map(id -> {
-                    String username = userRepository.findById(id)
-                            .map(u -> u.getUsername())
-                            .orElse("Unknown User");
+                    String username = "Unknown User";
+                    try {
+                        username = userService.findUserById(id).getUsername();
+                    } catch (Exception e) {
+                        System.err.println(">>> [ERROR] Failed to fetch username for ID: " + id + ". Error: " + e.getMessage());
+                    }
                     return new TeamMemberDto(id, username);
                 })
                 .collect(Collectors.toList());
 
-        String leaderName = team.getLeaderId() != null 
-                ? userRepository.findById(team.getLeaderId())
-                    .map(u -> u.getUsername())
-                    .orElse("Unknown Leader")
-                : "Unknown Leader";
+        String leaderName = "Unknown Leader";
+        if (team.getLeaderId() != null) {
+            try {
+                leaderName = userService.findUserById(team.getLeaderId()).getUsername();
+            } catch (Exception e) {
+                System.err.println(">>> [ERROR] Failed to fetch leader name for ID: " + team.getLeaderId() + ". Error: " + e.getMessage());
+            }
+        }
 
         return TeamResponseDto.builder()
                 .id(team.getId())

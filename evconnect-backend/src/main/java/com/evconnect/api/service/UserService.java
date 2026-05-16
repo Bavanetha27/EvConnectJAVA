@@ -3,6 +3,8 @@ package com.evconnect.api.service;
 import com.evconnect.api.model.User;
 import com.evconnect.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,11 +21,13 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    @Cacheable(value = "users", key = "#id")
     public User findUserById(String id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
+    @CacheEvict(value = "users", key = "#id")
     public User updateProfile(String id, String username, String email) {
         User user = findUserById(id);
         user.setUsername(username);
@@ -31,6 +35,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @CacheEvict(value = "users", key = "#id")
     public void changePassword(String id, String oldPassword, String newPassword) {
         User user = findUserById(id);
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
