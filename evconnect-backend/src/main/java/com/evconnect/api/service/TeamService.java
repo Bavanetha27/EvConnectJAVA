@@ -8,6 +8,8 @@ import com.evconnect.api.repository.EventRepository;
 import com.evconnect.api.repository.TeamRepository;
 import com.evconnect.api.repository.RegistrationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -122,6 +124,10 @@ public class TeamService {
                 .stream().map(this::mapToResponseDto).collect(Collectors.toList());
     }
 
+    public Page<TeamResponseDto> getAllTeamsPaged(Pageable pageable) {
+        return teamRepository.findAll(pageable).map(this::mapToResponseDto);
+    }
+
     private TeamResponseDto mapToResponseDto(Team team) {
         List<String> memberIds = team.getMemberIds();
         if (memberIds == null) memberIds = new ArrayList<>();
@@ -147,12 +153,26 @@ public class TeamService {
             }
         }
 
+        String eventName = "Unknown Event";
+        try {
+            eventRepository.findById(team.getEventId()).ifPresentOrElse(
+                event -> {}, // eventName will be set via builder or separate logic if preferred, but I'll update the builder below
+                () -> System.err.println(">>> [DEBUG] Team lookup failed: Event ID " + team.getEventId() + " not found in DB.")
+            );
+            eventName = eventRepository.findById(team.getEventId())
+                    .map(e -> e.getTitle())
+                    .orElse("Unknown Event");
+        } catch (Exception e) {
+            System.err.println(">>> [DEBUG] Team lookup ERROR: " + e.getMessage());
+        }
+
         return TeamResponseDto.builder()
                 .id(team.getId())
                 .name(team.getName())
                 .leaderId(team.getLeaderId())
                 .leaderName(leaderName)
                 .eventId(team.getEventId())
+                .eventName(eventName)
                 .teamCode(team.getTeamCode())
                 .members(memberDtos)
                 .build();

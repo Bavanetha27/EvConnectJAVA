@@ -5,6 +5,8 @@ import com.evconnect.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,10 @@ public class UserService {
 
     public List<User> findAllUsers() {
         return userRepository.findAll();
+    }
+
+    public Page<User> getUsersPaginated(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
 
     @Cacheable(value = "users", key = "#id")

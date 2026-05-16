@@ -60,6 +60,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/teams/event/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/events/paged").permitAll()
                 .anyRequest().authenticated()
             );
 

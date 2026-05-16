@@ -6,6 +6,8 @@ import com.evconnect.api.repository.EventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,6 +35,10 @@ public class EventService {
     public List<Event> getAllEvents() {
         System.out.println(">>> [DEBUG] Cache Miss! Fetching events from MongoDB...");
         return eventRepository.findAll();
+    }
+
+    public Page<Event> getEventsPaginated(Pageable pageable) {
+        return eventRepository.findAll(pageable);
     }
 
     @Cacheable(value = "event", key = "#id")

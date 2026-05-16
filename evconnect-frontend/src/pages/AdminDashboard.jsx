@@ -38,6 +38,9 @@ const AdminDashboard = () => {
     const [allRegistrations, setAllRegistrations] = useState([]);
     const [allReports, setAllReports] = useState([]);
     
+    // Modal State
+    const [selectedTeam, setSelectedTeam] = useState(null);
+    
     const [stats, setStats] = useState({
         totalEvents: 0,
         totalUsers: 0,
@@ -48,29 +51,55 @@ const AdminDashboard = () => {
     
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    
+    // Pagination States
+    const [pages, setPages] = useState({
+        events: 0,
+        users: 0,
+        teams: 0,
+        reports: 0
+    });
+    const [totalPages, setTotalPages] = useState({
+        events: 1,
+        users: 1,
+        teams: 1,
+        reports: 1
+    });
+
+    const pageSize = 10;
 
     useEffect(() => {
         const fetchAdminData = async () => {
+            if (!user) return; // Wait until user is loaded
+            
             setLoading(true);
             try {
+                // We'll fetch stats separately or from the first page responses
                 const [eventsRes, usersRes, teamsRes, regRes, reportsRes] = await Promise.all([
-                    api.get('/events'),
-                    api.get('/users'),
-                    api.get('/teams'),
-                    api.get('/registrations'),
-                    api.get('/reports')
+                    api.get(`/events/paged?page=${pages.events}&size=${pageSize}`),
+                    api.get(`/users/paged?page=${pages.users}&size=${pageSize}`),
+                    api.get(`/teams/paged?page=${pages.teams}&size=${pageSize}`),
+                    api.get('/registrations'), // Keeping registrations as is for stats
+                    api.get('/reports') // Keeping reports as is for now
                 ]);
                 
-                setAllEvents(eventsRes.data);
-                setAllUsers(usersRes.data);
-                setAllTeams(teamsRes.data);
+                setAllEvents(eventsRes.data.content);
+                setAllUsers(usersRes.data.content);
+                setAllTeams(teamsRes.data.content);
                 setAllRegistrations(regRes.data);
                 setAllReports(reportsRes.data);
                 
+                setTotalPages({
+                    events: eventsRes.data.totalPages,
+                    users: usersRes.data.totalPages,
+                    teams: teamsRes.data.totalPages,
+                    reports: 1
+                });
+
                 setStats({
-                    totalEvents: eventsRes.data.length,
-                    totalUsers: usersRes.data.length,
-                    totalTeams: teamsRes.data.length,
+                    totalEvents: eventsRes.data.totalElements,
+                    totalUsers: usersRes.data.totalElements,
+                    totalTeams: teamsRes.data.totalElements,
                     totalRegistrations: regRes.data.length,
                     totalReports: reportsRes.data.length
                 });
@@ -82,7 +111,7 @@ const AdminDashboard = () => {
             }
         };
         fetchAdminData();
-    }, []);
+    }, [pages]); // Re-fetch when page changes
 
     const handleDeleteEvent = async (id) => {
         if(!window.confirm("CRITICAL: Are you sure you want to PERMANENTLY delete this event?")) return;
@@ -175,6 +204,61 @@ const AdminDashboard = () => {
         >
             <Icon size={18} /> {label}
         </button>
+    );
+
+    const TeamMembersModal = ({ team, onClose }) => (
+        <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            <motion.div 
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl border border-gray-100"
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 className="text-2xl font-black text-gray-900">{team.name}</h3>
+                        <p className="text-xs font-bold text-primary uppercase tracking-widest mt-1">
+                            {team.eventName}
+                        </p>
+                    </div>
+                    <div className="bg-gray-100 px-3 py-1.5 rounded-xl border border-gray-200">
+                        <span className="text-[10px] font-black text-gray-400 uppercase block">Code</span>
+                        <span className="text-sm font-mono font-black text-gray-700">{team.teamCode}</span>
+                    </div>
+                </div>
+
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Team Roster</p>
+                    {team.members?.map((member) => (
+                        <div key={member.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                {member.username.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <div className="text-sm font-bold text-gray-900">
+                                    {member.username}
+                                    {member.id === team.leaderId && <span className="ml-2 text-[9px] bg-primary text-white px-1.5 py-0.5 rounded uppercase font-black">Leader</span>}
+                                </div>
+                                <div className="text-[10px] text-gray-400 font-mono">UID: {member.id.substring(0,8)}</div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <button 
+                    onClick={onClose}
+                    className="w-full mt-8 py-3 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 transition-all shadow-lg"
+                >
+                    Close Roster
+                </button>
+            </motion.div>
+        </motion.div>
     );
 
     if (loading) return (
@@ -363,17 +447,22 @@ const AdminDashboard = () => {
                                                     {filteredData().map(t => (
                                                         <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
                                                             <td className="px-6 py-4">
-                                                                <div className="font-bold text-gray-900">{t.name}</div>
+                                                                <button 
+                                                                    onClick={() => setSelectedTeam(t)}
+                                                                    className="font-bold text-gray-900 hover:text-primary transition-colors text-left"
+                                                                >
+                                                                    {t.name}
+                                                                </button>
                                                                 <div className="text-xs text-gray-400 font-mono">Team ID: {t.id.substring(0,8)}</div>
                                                             </td>
                                                             <td className="px-6 py-4 text-sm text-gray-600">
-                                                                {getEventName(t.eventId)}
+                                                                {t.eventName || "Unknown Event"}
                                                             </td>
                                                             <td className="px-6 py-4 text-sm text-gray-600">
-                                                                {getUserName(t.leaderId)}
+                                                                {t.leaderName || "Unknown Leader"}
                                                             </td>
                                                             <td className="px-6 py-4 text-right">
-                                                                <span className="font-bold text-primary">{t.memberIds?.length || 0}</span> Members
+                                                                <span className="font-bold text-primary">{t.members?.length || 0}</span> Members
                                                             </td>
                                                         </tr>
                                                     ))}
@@ -410,16 +499,13 @@ const AdminDashboard = () => {
                                                                 </div>
                                                             </td>
                                                             <td className="px-6 py-4">
-                                                                <div className="font-bold text-gray-900">{getEventName(r.eventId)}</div>
+                                                                <div className="font-bold text-gray-900">{r.eventName || "Unknown Event"}</div>
                                                                 <div className="flex items-center gap-2 mt-1">
-                                                                    <span className="text-xs text-gray-500">Org: {organizer?.username || 'Unknown'}</span>
-                                                                    {isNewOrg && (
-                                                                        <span className="px-1.5 py-0.5 bg-red-100 text-red-700 text-[9px] font-black uppercase rounded">NEW ORG</span>
-                                                                    )}
+                                                                    <span className="text-xs text-gray-500">Event ID: {r.eventId.substring(0,8)}</span>
                                                                 </div>
                                                             </td>
                                                             <td className="px-6 py-4 text-sm text-gray-600">
-                                                                {getUserName(r.userId)}
+                                                                {r.username || "Unknown User"}
                                                             </td>
                                                             <td className="px-6 py-4 text-right">
                                                                 <div className="flex justify-end gap-2">
@@ -450,12 +536,46 @@ const AdminDashboard = () => {
                                             <p className="font-bold">No results found in {activeTab}</p>
                                         </div>
                                     )}
+
+                                    {/* Pagination Controls */}
+                                    {['events', 'users', 'teams'].includes(activeTab) && totalPages[activeTab] > 1 && (
+                                        <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-100">
+                                            <div className="text-sm text-gray-500">
+                                                Page <span className="font-bold text-gray-900">{pages[activeTab] + 1}</span> of <span className="font-bold text-gray-900">{totalPages[activeTab]}</span>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    disabled={pages[activeTab] === 0}
+                                                    onClick={() => setPages(prev => ({ ...prev, [activeTab]: prev[activeTab] - 1 }))}
+                                                    className="px-4 py-2 text-sm font-bold rounded-xl border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                                >
+                                                    Previous
+                                                </button>
+                                                <button
+                                                    disabled={pages[activeTab] >= totalPages[activeTab] - 1}
+                                                    onClick={() => setPages(prev => ({ ...prev, [activeTab]: prev[activeTab] + 1 }))}
+                                                    className="px-4 py-2 text-sm font-bold bg-primary text-white rounded-xl hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                                                >
+                                                    Next
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </motion.div>
                             </AnimatePresence>
                         </div>
                     </div>
                 </div>
             </main>
+
+            <AnimatePresence>
+                {selectedTeam && (
+                    <TeamMembersModal 
+                        team={selectedTeam} 
+                        onClose={() => setSelectedTeam(null)} 
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 };

@@ -27,6 +27,9 @@ public class Registration implements Serializable {
     
     private String eventId;
     
+    private String eventName;
+    private String username;
+    
     private LocalDateTime registrationDate;
     
     private String status; // CONFIRMED, CANCELLED

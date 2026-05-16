@@ -16,6 +16,7 @@ public class RegistrationService {
 
     private final RegistrationRepository registrationRepository;
     private final EventRepository eventRepository;
+    private final com.evconnect.api.repository.UserRepository userRepository;
 
     public Registration registerForEvent(String eventId, String userId) {
         eventRepository.findById(eventId)
@@ -52,6 +53,13 @@ public class RegistrationService {
     }
 
     public List<Registration> getAllRegistrations() {
-        return registrationRepository.findAll();
+        List<Registration> registrations = registrationRepository.findAll();
+        registrations.forEach(r -> {
+            r.setEventName(eventRepository.findById(r.getEventId())
+                    .map(e -> e.getTitle()).orElse("Unknown Event"));
+            r.setUsername(userRepository.findById(r.getUserId())
+                    .map(u -> u.getUsername()).orElse("Unknown User"));
+        });
+        return registrations;
     }
 }

@@ -17,6 +17,7 @@ public class TeamResponseDto {
     private String leaderId;
     private String leaderName;
     private String eventId;
+    private String eventName;
     private String teamCode;
     private List<TeamMemberDto> members;
 }

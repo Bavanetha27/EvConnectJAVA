@@ -30,5 +30,8 @@ public class Report implements Serializable {
     
     private String reason;
     
+    private String eventName;
+    private String username;
+    
     private LocalDateTime createdAt;
 }

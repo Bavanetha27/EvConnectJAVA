@@ -61,8 +61,14 @@ const EventDetails = () => {
 
                 // Only fetch registrations if user is logged in
                 if (user) {
-                    const regRes = await api.get('/registrations/me');
-                    setRegistrations(regRes.data);
+                    try {
+                        const regRes = await api.get('/registrations/me');
+                        setRegistrations(regRes.data);
+                    } catch (regErr) {
+                        if (regErr.response?.status === 401) {
+                            setRegistrations([]);
+                        }
+                    }
                 }
             } catch (err) {
                 console.error("Error loading event resources", err);

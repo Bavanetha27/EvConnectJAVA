@@ -26,8 +26,14 @@ const Events = () => {
                 
                 // If logged in, fetch registrations to show badges
                 if (user) {
-                    const regRes = await api.get('/registrations/me');
-                    setRegistrations(regRes.data);
+                    try {
+                        const regRes = await api.get('/registrations/me');
+                        setRegistrations(regRes.data);
+                    } catch (regErr) {
+                        if (regErr.response?.status === 401) {
+                            setRegistrations([]);
+                        }
+                    }
                 } else {
                     setRegistrations([]);
                 }

@@ -11,6 +11,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 
 @RestController
@@ -23,6 +26,11 @@ public class EventController {
     @GetMapping
     public ResponseEntity<List<Event>> getAllEvents() {
         return ResponseEntity.ok(eventService.getAllEvents());
+    }
+
+    @GetMapping("/paged")
+    public ResponseEntity<Page<Event>> getEventsPaged(Pageable pageable) {
+        return ResponseEntity.ok(eventService.getEventsPaginated(pageable));
     }
 
     @GetMapping("/{id}")
